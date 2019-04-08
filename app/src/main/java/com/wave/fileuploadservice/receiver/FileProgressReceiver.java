@@ -5,6 +5,7 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.support.v4.app.NotificationCompat;
+import android.util.Log;
 
 import com.wave.fileuploadservice.MainActivity;
 import com.wave.fileuploadservice.NotificationHelper;
@@ -30,7 +31,7 @@ public class FileProgressReceiver extends BroadcastReceiver {
                 PendingIntent.FLAG_UPDATE_CURRENT);
         int notificationId = intent.getIntExtra("notificationId", 1);
         int progress = intent.getIntExtra("progress", 0);
-
+        Log.d(TAG, "onReceive: "+progress);
 
         switch (Objects.requireNonNull(intent.getAction())) {
             case ACTION_PROGRESS_NOTIFICATION:

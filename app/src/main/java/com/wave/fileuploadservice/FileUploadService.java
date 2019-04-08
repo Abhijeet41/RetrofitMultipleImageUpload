@@ -9,6 +9,7 @@ import android.support.v4.app.NotificationCompat;
 import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 
+import com.wave.fileuploadservice.receiver.FileProgressReceiver;
 import com.wave.fileuploadservice.receiver.RetryJobReceiver;
 import com.wave.fileuploadservice.service.CountingRequestBody;
 import com.wave.fileuploadservice.service.RestApiService;
@@ -59,6 +60,7 @@ public class FileUploadService extends JobIntentService {
 
     @Override
     protected void onHandleWork(@NonNull Intent intent) {
+        Log.d(TAG, "onHandleWork: ");
         /**
          * Download/Upload of file
          * The system or framework is already holding a wake lock for us at this point
@@ -84,6 +86,7 @@ public class FileUploadService extends JobIntentService {
                 .subscribe(new Consumer<Double>() {
                     @Override
                     public void accept(Double progress) throws Exception {
+
                         FileUploadService.this.onProgress(progress);
                     }
                 }, new Consumer<Throwable>() {
@@ -94,6 +97,7 @@ public class FileUploadService extends JobIntentService {
                 }, new Action() {
                     @Override
                     public void run() throws Exception {
+
                         FileUploadService.this.onSuccess();
                     }
                 });
@@ -103,7 +107,6 @@ public class FileUploadService extends JobIntentService {
         Intent successIntent = new Intent("com.wave.ACTION_CLEAR_NOTIFICATION");
         successIntent.putExtra("notificationId", NOTIFICATION_ID);
         LocalBroadcastManager.getInstance(this).sendBroadcast(successIntent);
-
 
 
         PendingIntent resultPendingIntent = PendingIntent.getActivity(this,
@@ -130,25 +133,30 @@ public class FileUploadService extends JobIntentService {
     }
 
     private void onProgress(Double progress) {
-        Intent progressIntent = new Intent("com.wave.ACTION_PROGRESS_NOTIFICATION");
+        Log.d(TAG, "accept: " + progress);
+        Intent progressIntent = new Intent(this, FileProgressReceiver.class);
+        progressIntent.setAction("com.wave.ACTION_PROGRESS_NOTIFICATION");
         progressIntent.putExtra("notificationId", NOTIFICATION_ID);
         progressIntent.putExtra("progress", (int) (100 * progress));
-        LocalBroadcastManager.getInstance(this).sendBroadcast(progressIntent);
+        sendBroadcast(progressIntent);
     }
 
     private void onSuccess() {
-        sendBroadcastMeaasge("File uploading successful ");
-        Intent successIntent = new Intent("com.wave.ACTION_UPLOADED");
+        //    sendBroadcastMeaasge("File uploading successful ");
+        Log.d(TAG, "run: Success");
+        Intent successIntent = new Intent(this, FileProgressReceiver.class);
+        //progressIntent.setAction("com.wave.ACTION_PROGRESS_NOTIFICATION");
+        successIntent.setAction("com.wave.ACTION_UPLOADED");
         successIntent.putExtra("notificationId", NOTIFICATION_ID);
         successIntent.putExtra("progress", 100);
-        LocalBroadcastManager.getInstance(this).sendBroadcast(successIntent);
+        sendBroadcast(successIntent);
     }
 
-    public void sendBroadcastMeaasge(String message) {
-        Intent localIntent = new Intent("my.own.broadcast");
-        localIntent.putExtra("result", message);
-        LocalBroadcastManager.getInstance(this).sendBroadcast(localIntent);
-    }
+//    public void sendBroadcastMeaasge(String message) {
+//        Intent localIntent = new Intent("my.own.broadcast");
+//        localIntent.putExtra("result", message);
+//        LocalBroadcastManager.getInstance(this).sendBroadcast(localIntent);
+//    }
 
     private RequestBody createRequestBodyFromFile(File file, String mimeType) {
         return RequestBody.create(MediaType.parse(mimeType), file);
