@@ -1,3 +1,8 @@
 <resources>
     <string name="app_name">FileUploadServiceWithProgress</string>
+    <string name="uploading">Uploading</string>
+    <string name="in_progress">In Progress …</string>
+    <string name="noti_channel_default">Default Channel</string>
+    <string name="btn_retry_not">Retry</string>
+    <string name="btn_cancel_not">Cancel</string>
 </resources>
