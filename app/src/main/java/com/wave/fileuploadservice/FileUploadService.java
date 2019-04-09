@@ -86,24 +86,28 @@ public class FileUploadService extends JobIntentService {
                 .subscribe(new Consumer<Double>() {
                     @Override
                     public void accept(Double progress) throws Exception {
-
+                        // call onProgress()
                         FileUploadService.this.onProgress(progress);
                     }
                 }, new Consumer<Throwable>() {
                     @Override
                     public void accept(Throwable throwable) throws Exception {
+                        // call onErrors() if error occurred during file upload
                         FileUploadService.this.onErrors(throwable);
                     }
                 }, new Action() {
                     @Override
                     public void run() throws Exception {
-
+                        // call onSuccess() while file upload successful
                         FileUploadService.this.onSuccess();
                     }
                 });
     }
 
     private void onErrors(Throwable throwable) {
+        /**
+         * Error occurred in file uploading
+         */
         Intent successIntent = new Intent("com.wave.ACTION_CLEAR_NOTIFICATION");
         successIntent.putExtra("notificationId", NOTIFICATION_ID);
         LocalBroadcastManager.getInstance(this).sendBroadcast(successIntent);
@@ -113,11 +117,17 @@ public class FileUploadService extends JobIntentService {
                 0 /* Request code */, null,
                 PendingIntent.FLAG_UPDATE_CURRENT);
 
+        /**
+         * Add retry action button in notification
+         */
         Intent retryIntent = new Intent(this, RetryJobReceiver.class);
         retryIntent.putExtra("notificationId", NOTIFICATION_RETRY_ID);
         retryIntent.putExtra("mFilePath", mFilePath);
         retryIntent.setAction(ACTION_RETRY);
 
+        /**
+         * Add clear action button in notification
+         */
         Intent clearIntent = new Intent(this, RetryJobReceiver.class);
         clearIntent.putExtra("notificationId", NOTIFICATION_RETRY_ID);
         clearIntent.putExtra("mFilePath", mFilePath);
@@ -126,14 +136,20 @@ public class FileUploadService extends JobIntentService {
         PendingIntent retryPendingIntent = PendingIntent.getBroadcast(this, 0, retryIntent, 0);
         PendingIntent clearPendingIntent = PendingIntent.getBroadcast(this, 0, clearIntent, 0);
         NotificationCompat.Builder mBuilder = mNotificationHelper.getNotification("", "", resultPendingIntent);
-
+        // attached Retry action in notification
         mBuilder.addAction(android.R.drawable.ic_menu_revert, getString(R.string.btn_retry_not), retryPendingIntent);
+        // attached Cancel action in notification
         mBuilder.addAction(android.R.drawable.ic_menu_revert, getString(R.string.btn_cancel_not), clearPendingIntent);
+        // Notify notification
         mNotificationHelper.notify(NOTIFICATION_RETRY_ID, mBuilder);
     }
 
+    /**
+     * Send Broadcast to FileProgressReceiver with progress
+     *
+     * @param progress file uploading progress
+     */
     private void onProgress(Double progress) {
-        Log.d(TAG, "accept: " + progress);
         Intent progressIntent = new Intent(this, FileProgressReceiver.class);
         progressIntent.setAction("com.wave.ACTION_PROGRESS_NOTIFICATION");
         progressIntent.putExtra("notificationId", NOTIFICATION_ID);
@@ -141,22 +157,16 @@ public class FileUploadService extends JobIntentService {
         sendBroadcast(progressIntent);
     }
 
+    /**
+     * Send Broadcast to FileProgressReceiver while file upload successful
+     */
     private void onSuccess() {
-        //    sendBroadcastMeaasge("File uploading successful ");
-        Log.d(TAG, "run: Success");
         Intent successIntent = new Intent(this, FileProgressReceiver.class);
-        //progressIntent.setAction("com.wave.ACTION_PROGRESS_NOTIFICATION");
         successIntent.setAction("com.wave.ACTION_UPLOADED");
         successIntent.putExtra("notificationId", NOTIFICATION_ID);
         successIntent.putExtra("progress", 100);
         sendBroadcast(successIntent);
     }
-
-//    public void sendBroadcastMeaasge(String message) {
-//        Intent localIntent = new Intent("my.own.broadcast");
-//        localIntent.putExtra("result", message);
-//        LocalBroadcastManager.getInstance(this).sendBroadcast(localIntent);
-//    }
 
     private RequestBody createRequestBodyFromFile(File file, String mimeType) {
         return RequestBody.create(MediaType.parse(mimeType), file);

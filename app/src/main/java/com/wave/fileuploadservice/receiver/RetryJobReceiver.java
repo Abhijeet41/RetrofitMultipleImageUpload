@@ -17,6 +17,9 @@ public class RetryJobReceiver extends BroadcastReceiver {
 
     @Override
     public void onReceive(Context context, Intent intent) {
+        /**
+         * Handle notification user actions
+         */
         mNotificationHelper = new NotificationHelper(context);
         int notificationId = intent.getIntExtra("notificationId", 0);
         String filePath = intent.getStringExtra("mFilePath");

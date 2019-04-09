@@ -38,7 +38,8 @@ public class NotificationHelper extends ContextWrapper {
         mBuilder.setColor(ContextCompat.getColor(getApplicationContext(), R.color.colorAccent));
         mBuilder.setContentTitle(title)
                 .setContentText(body)
-                //  .setContentIntent(resultPendingIntent)
+                .setOngoing(true)
+                //.setContentIntent(resultPendingIntent)
                 .setDefaults(NotificationCompat.DEFAULT_ALL)
                 .setPriority(NotificationCompat.PRIORITY_HIGH);
         mBuilder.setVibrate(new long[]{0L});

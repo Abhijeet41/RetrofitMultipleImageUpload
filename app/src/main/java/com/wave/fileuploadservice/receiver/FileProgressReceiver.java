@@ -5,10 +5,10 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.support.v4.app.NotificationCompat;
-import android.util.Log;
 
 import com.wave.fileuploadservice.MainActivity;
 import com.wave.fileuploadservice.NotificationHelper;
+import com.wave.fileuploadservice.R;
 
 import java.util.Objects;
 
@@ -25,32 +25,27 @@ public class FileProgressReceiver extends BroadcastReceiver {
     @Override
     public void onReceive(Context mContext, Intent intent) {
         mNotificationHelper = new NotificationHelper(mContext);
-        Intent resultIntent = new Intent(mContext, MainActivity.class);
-        PendingIntent resultPendingIntent = PendingIntent.getActivity(mContext,
-                0 /* Request code */, resultIntent,
-                PendingIntent.FLAG_UPDATE_CURRENT);
+
+        // Get notification id
         int notificationId = intent.getIntExtra("notificationId", 1);
+        // Receive progress
         int progress = intent.getIntExtra("progress", 0);
-        Log.d(TAG, "onReceive: "+progress);
 
         switch (Objects.requireNonNull(intent.getAction())) {
             case ACTION_PROGRESS_NOTIFICATION:
-                notification = mNotificationHelper.getNotification("", "", progress);
+                notification = mNotificationHelper.getNotification(mContext.getString(R.string.uploading), mContext.getString(R.string.in_progress), progress);
                 mNotificationHelper.notify(NOTIFICATION_ID, notification);
                 break;
             case ACTION_CLEAR_NOTIFICATION:
                 mNotificationHelper.cancelNotification(notificationId);
                 break;
             case ACTION_UPLOADED:
-                notification = mNotificationHelper.getNotification("", "", resultPendingIntent);
+                Intent resultIntent = new Intent(mContext, MainActivity.class);
+                PendingIntent resultPendingIntent = PendingIntent.getActivity(mContext,
+                        0 /* Request code */, resultIntent,
+                        PendingIntent.FLAG_UPDATE_CURRENT);
+                notification = mNotificationHelper.getNotification(mContext.getString(R.string.message_upload_success), mContext.getString(R.string.file_upload_successful), resultPendingIntent);
                 mNotificationHelper.notify(NOTIFICATION_ID, notification);
-//                String mWaveId = intent.getStringExtra("wave_id");
-//                Intent waveIntent = new Intent(LeherApp.getInstance(), MainActivity.class);
-//                waveIntent.putExtra(MainActivity.LINK_TYPE, "WAVE");
-//                waveIntent.putExtra(MainActivity.LINK_ID, mWaveId);
-//                mHelper.updateNotification(mContext.getString(R.string.message_opinion_uploading), "", waveIntent, notificationId);
-
-
                 break;
             default:
                 break;

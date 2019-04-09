@@ -1,8 +1,13 @@
 <resources>
     <string name="app_name">FileUploadServiceWithProgress</string>
-    <string name="uploading">Uploading</string>
-    <string name="in_progress">In Progress …</string>
     <string name="noti_channel_default">Default Channel</string>
     <string name="btn_retry_not">Retry</string>
     <string name="btn_cancel_not">Cancel</string>
+    <string name="file_upload_successful">File has been uploaded successfully</string>
+    <string name="uploading">Uploading</string>
+    <string name="in_progress">in progress</string>
+    <string name="message_failed">File has been not uploaded</string>
+    <string name="message_upload_success">Upload success</string>
+    <string name="error_upload_falied">Upload failed</string>
+    <string name="messge_upload_failed">File is not uploaded. Please TRY AGAIN</string>
 </resources>
