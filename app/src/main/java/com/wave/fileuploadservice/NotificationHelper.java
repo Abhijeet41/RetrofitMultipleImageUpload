@@ -85,7 +85,7 @@ public class NotificationHelper extends ContextWrapper {
      * @return The small icon resource id
      */
     private int getSmallIcon() {
-        return android.R.drawable.stat_notify_chat;
+        return android.R.drawable.stat_notify_sync;
     }
 
     /**

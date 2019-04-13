@@ -110,11 +110,11 @@ public class FileUploadService extends JobIntentService {
          */
         Intent successIntent = new Intent("com.wave.ACTION_CLEAR_NOTIFICATION");
         successIntent.putExtra("notificationId", NOTIFICATION_ID);
-        LocalBroadcastManager.getInstance(this).sendBroadcast(successIntent);
+        sendBroadcast(successIntent);
 
 
         PendingIntent resultPendingIntent = PendingIntent.getActivity(this,
-                0 /* Request code */, null,
+                0 /* Request code */, new Intent(this,MainActivity.class),
                 PendingIntent.FLAG_UPDATE_CURRENT);
 
         /**
@@ -135,7 +135,7 @@ public class FileUploadService extends JobIntentService {
 
         PendingIntent retryPendingIntent = PendingIntent.getBroadcast(this, 0, retryIntent, 0);
         PendingIntent clearPendingIntent = PendingIntent.getBroadcast(this, 0, clearIntent, 0);
-        NotificationCompat.Builder mBuilder = mNotificationHelper.getNotification("", "", resultPendingIntent);
+        NotificationCompat.Builder mBuilder = mNotificationHelper.getNotification(getString(R.string.error_upload_failed), getString(R.string.message_upload_failed), resultPendingIntent);
         // attached Retry action in notification
         mBuilder.addAction(android.R.drawable.ic_menu_revert, getString(R.string.btn_retry_not), retryPendingIntent);
         // attached Cancel action in notification
