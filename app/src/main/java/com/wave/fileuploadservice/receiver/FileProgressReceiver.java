@@ -4,7 +4,7 @@ import android.app.PendingIntent;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
-import android.support.v4.app.NotificationCompat;
+import androidx.core.app.NotificationCompat;
 
 import com.wave.fileuploadservice.MainActivity;
 import com.wave.fileuploadservice.NotificationHelper;
@@ -46,10 +46,12 @@ public class FileProgressReceiver extends BroadcastReceiver {
                         PendingIntent.FLAG_UPDATE_CURRENT);
                 notification = mNotificationHelper.getNotification(mContext.getString(R.string.message_upload_success), mContext.getString(R.string.file_upload_successful), resultPendingIntent);
                 mNotificationHelper.notify(NOTIFICATION_ID, notification);
+                
                 break;
             default:
                 break;
         }
 
     }
+
 }

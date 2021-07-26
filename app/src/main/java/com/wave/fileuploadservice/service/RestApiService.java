@@ -1,5 +1,7 @@
 package com.wave.fileuploadservice.service;
 
+import java.util.List;
+
 import io.reactivex.Single;
 import okhttp3.MultipartBody;
 import okhttp3.RequestBody;
@@ -18,5 +20,9 @@ public interface RestApiService {
     @Multipart
     @POST("fileUpload.php")
     Single<ResponseBody> onFileUpload(@Part("email") RequestBody mEmail, @Part MultipartBody.Part file);
+
+    @Multipart
+    @POST("talent/image-upload")
+    Single<ResponseBody> onFileUploadMultiple(@Part("userId") RequestBody userId, @Part List<MultipartBody.Part> file);
 
 }

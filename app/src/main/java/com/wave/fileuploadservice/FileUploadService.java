@@ -3,12 +3,13 @@ package com.wave.fileuploadservice;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
-import android.support.annotation.NonNull;
-import android.support.v4.app.JobIntentService;
-import android.support.v4.app.NotificationCompat;
-import android.support.v4.content.LocalBroadcastManager;
+import androidx.annotation.NonNull;
+import androidx.core.app.JobIntentService;
+import androidx.core.app.NotificationCompat;
+
 import android.util.Log;
 
+import com.wave.fileuploadservice.model.ProfileImage;
 import com.wave.fileuploadservice.receiver.FileProgressReceiver;
 import com.wave.fileuploadservice.receiver.RetryJobReceiver;
 import com.wave.fileuploadservice.service.CountingRequestBody;
@@ -17,6 +18,8 @@ import com.wave.fileuploadservice.service.RetrofitInstance;
 import com.wave.fileuploadservice.utils.MIMEType;
 
 import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
 
 import io.reactivex.BackpressureStrategy;
 import io.reactivex.Flowable;
@@ -44,9 +47,10 @@ public class FileUploadService extends JobIntentService {
      * Unique job ID for this service.
      */
     private static final int JOB_ID = 102;
-    String mFilePath;
+    //String mFilePath;
 
     NotificationHelper mNotificationHelper;
+    ArrayList<ProfileImage> mFilePath = new ArrayList<>();
 
     public static void enqueueWork(Context context, Intent intent) {
         enqueueWork(context, FileUploadService.class, JOB_ID, intent);
@@ -67,7 +71,9 @@ public class FileUploadService extends JobIntentService {
          */
 
         // get file file here
-        mFilePath = intent.getStringExtra("mFilePath");
+      //  mFilePath = intent.getStringExtra("mFilePath");
+        mFilePath = (ArrayList<ProfileImage>)intent.getSerializableExtra("mFilePath");
+
         if (mFilePath == null) {
             Log.e(TAG, "onHandleWork: Invalid file URI");
             return;
@@ -76,8 +82,22 @@ public class FileUploadService extends JobIntentService {
         Flowable<Double> fileObservable = Flowable.create(new FlowableOnSubscribe<Double>() {
             @Override
             public void subscribe(FlowableEmitter<Double> emitter) throws Exception {
-                apiService.onFileUpload(FileUploadService.this.createRequestBodyFromText("info@androidwave.com"), FileUploadService.this.createMultipartBody(mFilePath, emitter)).blockingGet();
+            /*    apiService.onFileUpload(FileUploadService.this.createRequestBodyFromText("info@androidwave.com"), FileUploadService.this.createMultipartBody(mFilePath, emitter)).blockingGet();
+                emitter.onComplete();*/
+
+                List<MultipartBody.Part> parts = new ArrayList<>();
+
+                for (int index = 0; index < mFilePath.size(); index++)
+                {
+                    String imagePath = mFilePath.get(index).getImage_path();
+
+                    parts.add(FileUploadService.this.createMultipartBody("image[]",imagePath,emitter));
+                }
+
+                apiService.onFileUploadMultiple(FileUploadService.this.createRequestBodyFromText("1"),parts).blockingGet();
+
                 emitter.onComplete();
+
             }
         }, BackpressureStrategy.LATEST);
 
@@ -108,7 +128,8 @@ public class FileUploadService extends JobIntentService {
         /**
          * Error occurred in file uploading
          */
-        Intent successIntent = new Intent("com.wave.ACTION_CLEAR_NOTIFICATION");
+        Intent successIntent = new Intent(this,FileProgressReceiver.class);
+        successIntent.setAction("com.wave.ACTION_CLEAR_NOTIFICATION");
         successIntent.putExtra("notificationId", NOTIFICATION_ID);
         sendBroadcast(successIntent);
 
@@ -120,10 +141,10 @@ public class FileUploadService extends JobIntentService {
         /**
          * Add retry action button in notification
          */
-        Intent retryIntent = new Intent(this, RetryJobReceiver.class);
+      /*  Intent retryIntent = new Intent(this, RetryJobReceiver.class);
         retryIntent.putExtra("notificationId", NOTIFICATION_RETRY_ID);
         retryIntent.putExtra("mFilePath", mFilePath);
-        retryIntent.setAction(ACTION_RETRY);
+        retryIntent.setAction(ACTION_RETRY);*/
 
         /**
          * Add clear action button in notification
@@ -133,11 +154,11 @@ public class FileUploadService extends JobIntentService {
         clearIntent.putExtra("mFilePath", mFilePath);
         clearIntent.setAction(ACTION_CLEAR);
 
-        PendingIntent retryPendingIntent = PendingIntent.getBroadcast(this, 0, retryIntent, 0);
+        //PendingIntent retryPendingIntent = PendingIntent.getBroadcast(this, 0, retryIntent, 0);
         PendingIntent clearPendingIntent = PendingIntent.getBroadcast(this, 0, clearIntent, 0);
         NotificationCompat.Builder mBuilder = mNotificationHelper.getNotification(getString(R.string.error_upload_failed), getString(R.string.message_upload_failed), resultPendingIntent);
         // attached Retry action in notification
-        mBuilder.addAction(android.R.drawable.ic_menu_revert, getString(R.string.btn_retry_not), retryPendingIntent);
+    //    mBuilder.addAction(android.R.drawable.ic_menu_revert, getString(R.string.btn_retry_not), retryPendingIntent);
         // attached Cancel action in notification
         mBuilder.addAction(android.R.drawable.ic_menu_revert, getString(R.string.btn_cancel_not), clearPendingIntent);
         // Notify notification
@@ -189,6 +210,12 @@ public class FileUploadService extends JobIntentService {
         return MultipartBody.Part.createFormData("myFile", file.getName(), createCountingRequestBody(file, MIMEType.IMAGE.value, emitter));
     }
 
+    private MultipartBody.Part createMultipartBody(String name, String filePath, FlowableEmitter<Double> emitter)
+    {
+        File file = new File(filePath);
+        return MultipartBody.Part.createFormData(name, file.getName(), createCountingRequestBody(file, MIMEType.IMAGE.value, emitter));
+    }
+
     private RequestBody createCountingRequestBody(File file, String mimeType, final FlowableEmitter<Double> emitter) {
         RequestBody requestBody = createRequestBodyFromFile(file, mimeType);
         return new CountingRequestBody(requestBody, new CountingRequestBody.Listener() {
@@ -199,4 +226,6 @@ public class FileUploadService extends JobIntentService {
             }
         });
     }
+
+
 }
